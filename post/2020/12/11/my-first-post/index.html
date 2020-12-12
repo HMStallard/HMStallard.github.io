@@ -7,7 +7,7 @@
     <meta name="author" content="Hunter Stallard" />
     
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../img/favicon.ico">
-    <title>My First Post</title>
+    <title>Python as a Skill</title>
     <meta name="generator" content="Hugo 0.79.0" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="../../../../../css/main.css" />
@@ -54,7 +54,7 @@
       <div class="container">
         <div class="blog-post">
           <h3>
-            <strong><a href="../../../../../post/2020/12/11/my-first-post/">My First Post</a></strong>
+            <strong><a href="../../../../../post/2020/12/11/my-first-post/">Python as a Skill</a></strong>
           </h3>
         </div>
  
@@ -72,8 +72,26 @@
               
 
 
-<p><a href="../../../../../project/project1/">Link to project 1</a></p>
+<div id="python" class="section level1">
+<h1>Python</h1>
+<div id="why-i-am-unhappy-with-my-current-ability." class="section level2">
+<h2>Why I am unhappy with my current ability.</h2>
+<p>Despite, repeated attempts at inserting a small bit of python code in this blog post, I have not been able to get it to run how I want it. I was trying to run the exact same code from class but despite me knowing the code is able to be run, I can't get past this error.</p>
+<p>Traceback (most recent call last): File &quot;/tmp/RtmpJjxmpT/chunk-code-7fd2725a46b0.txt&quot;, line 5, in <module> plt.scatter(x,y, color=&quot;red&quot;, alpha=.5) File &quot;/usr/lib/python2.7/dist-packages/matplotlib/pyplot.py&quot;, line 3364, in scatter ax = gca() File &quot;/usr/lib/python2.7/dist-packages/matplotlib/pyplot.py&quot;, line 962, in gca return gcf().gca(<strong>kwargs) File &quot;/usr/lib/python2.7/dist-packages/matplotlib/pyplot.py&quot;, line 592, in gcf return figure() File &quot;/usr/lib/python2.7/dist-packages/matplotlib/pyplot.py&quot;, line 539, in figure </strong>kwargs) File &quot;/usr/lib/python2.7/dist-packages/matplotlib/backend_bases.py&quot;, line 171, in new_figure_manager return cls.new_figure_manager_given_figure(num, fig) File &quot;/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_tkagg.py&quot;, line 1049, in new_figure_manager_given_figure window = Tk.Tk(className=&quot;matplotlib&quot;) File &quot;/usr/lib/python2.7/lib-tk/Tkinter.py&quot;, line 1828, in <strong>init</strong> self.tk = _tkinter.create(screenName, baseName, className, interactive, wantobjects, useTk, sync, use) _tkinter.TclError: couldn't connect to display &quot;:0&quot;</p>
+<p>I hope that one day I will be able to use python without searching the for the many errors I create on stack overflow. I know that may be nearly impossible, but I am going to keep the hope alive regardless. Thanks for a great semester Dr.Woodward, once again you've made your class very enjoyable!</p>
+<pre class="python"><code>import numpy as np
+import matplotlib.pyplot as plt
+x=np.random.normal(0,1,50) #use numpy.random to take random samples
+y=np.random.normal(0,1,50)
+#plt.scatter(x,y, color=&quot;red&quot;, alpha=.5)
+#plt.xlabel(&#39;x label&#39;)
+#plt.ylabel(&#39;y label&#39;)
+#plt.title(&#39;Title&#39;)
+#plt.show()
+ </code></pre>
 <p><a href="https://www.google.com">Link to google</a></p>
+</div>
+</div>
 
             
         <hr>         <div class="related-posts">

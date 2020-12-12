@@ -8,13 +8,13 @@
     <language>en-US</language>
     <lastBuildDate>Fri, 11 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>My First Post</title>
+      <title>Python as a Skill</title>
       <link>/post/2020/12/11/my-first-post/</link>
       <pubDate>Fri, 11 Dec 2020 00:00:00 +0000</pubDate>
       
       <guid>/post/2020/12/11/my-first-post/</guid>
-      <description>Link to project 1
-Link to google</description>
+      <description>Python Why I am unhappy with my current ability. Despite, repeated attempts at inserting a small bit of python code in this blog post, I have not been able to get it to run how I want it. I was trying to run the exact same code from class but despite me knowing the code is able to be run, I can&#39;t get past this error.
+Traceback (most recent call last): File &amp;quot;/tmp/RtmpJjxmpT/chunk-code-7fd2725a46b0.</description>
     </item>
     
     <item>
