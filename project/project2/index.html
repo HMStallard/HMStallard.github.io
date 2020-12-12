@@ -187,7 +187,7 @@ resid_resamp &lt;- replicate(5000, {
 })
 resid_resamp %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
 <pre><code>##   (Intercept) Guns$`Gun Ownership (Percent)`
-## 1    1.450066                     0.04122831</code></pre>
+## 1    1.458131                     0.04171997</code></pre>
 <p>The standard errors where pretty comparable, sticking around .41-.43 for all test iterations. Overall, the robust standard errors was the most conserved.</p>
 <pre class="r"><code>LR3 &lt;- glm(Guns$R_or_D ~ Guns$RATE + Guns$`Gun Ownership (Percent)` + 
     Guns$`Registered Guns`, family = &quot;binomial&quot;)
@@ -256,22 +256,22 @@ coeftest(LR4)</code></pre>
 ## z test of coefficients:
 ## 
 ##                                   Estimate  Std. Error z value Pr(&gt;|z|)  
-## (Intercept)                    -3.5316e+00  1.4473e+00 -2.4402  0.01468 *
-## Guns$RATE                       1.7754e-01  9.1825e-02  1.9335  0.05318 .
-## Guns$`Gun Ownership (Percent)` -3.7470e-02  4.3254e-02 -0.8663  0.38633  
-## Guns$`Registered Guns`          6.3788e-06  6.2307e-06  1.0238  0.30595  
-## Guns$Deaths                    -7.8729e-04  1.0119e-03 -0.7780  0.43656  
-## Guns$new_y                      1.7827e-01  1.0872e-01  1.6397  0.10107  
+## (Intercept)                    -2.3119e+00  1.0886e+00 -2.1238  0.03369 *
+## Guns$RATE                       1.3266e-01  8.7731e-02  1.5122  0.13049  
+## Guns$`Gun Ownership (Percent)` -1.2856e-02  4.6506e-02 -0.2764  0.78220  
+## Guns$`Registered Guns`          3.2888e-06  5.6049e-06  0.5868  0.55735  
+## Guns$Deaths                    -3.6724e-04  9.6161e-04 -0.3819  0.70253  
+## Guns$new_y                      7.3179e-02  1.2194e-01  0.6001  0.54841  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <pre class="r"><code>coef(LR4) %&gt;% exp %&gt;% round(5) %&gt;% data.frame</code></pre>
 <pre><code>##                                      .
-## (Intercept)                    0.02926
-## Guns$RATE                      1.19428
-## Guns$`Gun Ownership (Percent)` 0.96322
-## Guns$`Registered Guns`         1.00001
-## Guns$Deaths                    0.99921
-## Guns$new_y                     1.19514</code></pre>
+## (Intercept)                    0.09907
+## Guns$RATE                      1.14187
+## Guns$`Gun Ownership (Percent)` 0.98723
+## Guns$`Registered Guns`         1.00000
+## Guns$Deaths                    0.99963
+## Guns$new_y                     1.07592</code></pre>
 <pre class="r"><code>prob1 &lt;- predict(LR4, type = &quot;response&quot;)
 table(predict = as.numeric(prob &gt; 0.5), truth = Guns$R_or_D) %&gt;% 
     addmargins</code></pre>
