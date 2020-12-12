@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Hunter Stallard" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 2</title>
+    <meta name="generator" content="Hugo 0.79.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">Project 2</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p>I decided to research the correlation between gun ownership and gun deaths in each state. I have titled the data sets GunMort, GovParty, and GunReg. In GunMort, each state, the number of their<br />
+total gun deaths by state, and the number of deaths by gun per 100,000 population by state is listed. This data was collected on the CDC website describing firearm mortality. In GovParty each state and the political party of the governor of each state is listed. This data was aquired on the Governors 2020 Roster<br />
+from the National Governors Association. In GunReg, each state, the total number of registered guns by state, and the percentage of adults who own guns is listed. This data was collected on statista.com in the Crime &amp; Law Enforcement sub-section.</p>
+<pre class="r"><code>library(readr)
+library(tidyverse)
+library(dplyr)
+library(rstatix)
+library(sandwich)
+library(lmtest)
+library(plotROC)
+
+GunMort &lt;- read_csv(&quot;FA Mort.csv&quot;)
+GunReg &lt;- read_csv(&quot;GunRegistry by State - Sheet1 (1).csv&quot;)
+GovParty &lt;- read_csv(&quot;Governor&#39;s Party Data - Sheet1.csv&quot;)
+Guns &lt;- GunReg %&gt;% left_join(GunMort) %&gt;% left_join(GovParty)
+Guns &lt;- Guns %&gt;% mutate(R_or_D = ifelse(Guns$`Governor&#39;s Political Party` == 
+    &quot;R&quot;, 1, 0))
+
+
+PParty &lt;- Guns$R_or_D
+ggplot(Guns, aes(x = Guns$RATE, y = Guns$`Gun Ownership (Percent)`)) + 
+    geom_point(alpha = 0.5) + geom_density_2d(h = 2) + 
+    coord_fixed() + facet_wrap(Guns$R_or_D)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>man1 &lt;- manova(cbind(Guns$`Gun Ownership (Percent)`, 
+    Guns$RATE) ~ PParty)
+summary.aov(man1)</code></pre>
+<pre><code>##  Response 1 :
+##             Df Sum Sq Mean Sq F value  Pr(&gt;F)  
+## PParty       1  592.9  592.90  3.6696 0.06138 .
+## Residuals   48 7755.5  161.57                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response 2 :
+##             Df  Sum Sq Mean Sq F value  Pr(&gt;F)  
+## PParty       1  163.79 163.792   6.728 0.01255 *
+## Residuals   48 1168.56  24.345                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>pairwise.t.test(Guns$RATE, Guns$R_or_D, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  Guns$RATE and Guns$R_or_D 
+## 
+##   0    
+## 1 0.013
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(Guns$`Gun Ownership (Percent)`, Guns$R_or_D, 
+    p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  Guns$`Gun Ownership (Percent)` and Guns$R_or_D 
+## 
+##   0    
+## 1 0.061
+## 
+## P value adjustment method: none</code></pre>
+<p>I conducted a one-way MANOVA to determine if the political party of a state's government had an effect on the rates of firearm death or gun ownership percentage. Examination of bivariate density plots for each group revealed no stark deparures from multivariate normality. Examination of covariance matrices for each group revealed relative homogeneity. No univariate or multivariate outliers were evident and MANOVA was considered to be an appropriate analysis technique. The overall MANOVA showed a p value of .04375 which triggered follow-up one-way ANOVAs of both variables. Only the death RATE variable showed signifigant correlation with Governor's Party, and after a posthoc t-test the p value was determined to be .013. We conducted 4 tests and after using the bonferroni adjustment our a = .0125. In this case we cannot confirm signifigant correlation between these variables but the test was very close and follow up tests should be conducted.</p>
+<pre class="r"><code>cor(Guns$RATE, Guns$`Gun Ownership (Percent)`)</code></pre>
+<pre><code>## [1] 0.6719846</code></pre>
+<pre class="r"><code>LR &lt;- lm(Guns$RATE ~ Guns$`Gun Ownership (Percent)`)
+summary(LR)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Guns$RATE ~ Guns$`Gun Ownership (Percent)`)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -12.7490  -1.9387   0.2106   2.3847   9.5831 
+## 
+## Coefficients:
+##                                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                      4.6418     1.4967   3.101  0.00322 ** 
+## Guns$`Gun Ownership (Percent)`   0.2685     0.0427   6.287 9.14e-08 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.902 on 48 degrees of freedom
+## Multiple R-squared:  0.4516, Adjusted R-squared:  0.4401 
+## F-statistic: 39.52 on 1 and 48 DF,  p-value: 9.136e-08</code></pre>
+<pre class="r"><code>Guns %&gt;% ggplot(aes(Guns$RATE, Guns$`Gun Ownership (Percent)`)) + 
+    geom_point() + geom_smooth(method = &quot;lm&quot;, se = F)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bptest(LR)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  LR
+## BP = 0.28993, df = 1, p-value = 0.5903</code></pre>
+<pre class="r"><code>coeftest(LR)[, 1:2]</code></pre>
+<pre><code>##                                 Estimate Std. Error
+## (Intercept)                    4.6418209 1.49666592
+## Guns$`Gun Ownership (Percent)` 0.2684524 0.04270224</code></pre>
+<pre class="r"><code>coeftest(LR, vcov = vcovHC(LR))[, 1:2]</code></pre>
+<pre><code>##                                 Estimate Std. Error
+## (Intercept)                    4.6418209 1.46586481
+## Guns$`Gun Ownership (Percent)` 0.2684524 0.04376883</code></pre>
+<p>The coeffecient value suggests that for every .26 unit increase of gun ownership percentage, there is a 1 unit increase in death rate. Assumptions cleared graphically and with a bptest. There was no signifigant change caused by the robust standard errors. As the p value of the interaction between Gun ownership percent and death rate is extremely low , it suggests that there is signifigant interaction between them. My model explains 44% of the variation as that is its r^2 value.</p>
+<pre class="r"><code>resids &lt;- LR$residuals  #save residuals
+fitted &lt;- LR$fitted.values  #save yhats/predictions
+new_resids &lt;- sample(resids, replace = TRUE)
+Guns$new_y &lt;- fitted + new_resids
+
+resid_resamp &lt;- replicate(5000, {
+    new_resids &lt;- sample(resids, replace = TRUE)
+    Guns$new_y &lt;- fitted + new_resids
+    LR2 &lt;- lm(Guns$new_y ~ Guns$`Gun Ownership (Percent)`)
+    coef(LR2)
+})
+resid_resamp %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept) Guns$`Gun Ownership (Percent)`
+## 1    1.450066                     0.04122831</code></pre>
+<p>The standard errors where pretty comparable, sticking around .41-.43 for all test iterations. Overall, the robust standard errors was the most conserved.</p>
+<pre class="r"><code>LR3 &lt;- glm(Guns$R_or_D ~ Guns$RATE + Guns$`Gun Ownership (Percent)` + 
+    Guns$`Registered Guns`, family = &quot;binomial&quot;)
+coeftest(LR3)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                                   Estimate  Std. Error z value Pr(&gt;|z|)  
+## (Intercept)                    -2.1726e+00  1.0259e+00 -2.1177   0.0342 *
+## Guns$RATE                       1.3361e-01  8.3814e-02  1.5941   0.1109  
+## Guns$`Gun Ownership (Percent)`  1.0599e-02  3.2351e-02  0.3276   0.7432  
+## Guns$`Registered Guns`          1.0171e-06  2.3429e-06  0.4341   0.6642  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>coef(LR3) %&gt;% exp %&gt;% round(5) %&gt;% data.frame</code></pre>
+<pre><code>##                                      .
+## (Intercept)                    0.11388
+## Guns$RATE                      1.14295
+## Guns$`Gun Ownership (Percent)` 1.01065
+## Guns$`Registered Guns`         1.00000</code></pre>
+<pre class="r"><code>prob &lt;- predict(LR3, type = &quot;response&quot;)
+table(predict = as.numeric(prob &gt; 0.5), truth = Guns$R_or_D) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict  0  1 Sum
+##     0   14  8  22
+##     1   10 18  28
+##     Sum 24 26  50</code></pre>
+<p>The intercept shows predicted odds of Republican Governor when all variables are zero is .11388. Rate shows that controlling for Gun ownership and registered guns, for every one-unit increase in RATE, predicted odds of republican governor increase by a factor of 1.14. The other variables did not show signifigant interaction. Sensitivity is .692, specificity is .583, and precision is .6428.</p>
+<p><img src="../../project/project2_files/figure-html/pressure-1.png" width="672" style="display: block; margin: auto;" /><img src="../../project/project2_files/figure-html/pressure-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.7051282</code></pre>
+<p>Here is my log ggplot and my AUC curve. AUC came out at .705 signifying that if we randomly selected a state with a republican goverenor there is a 70% probability that this model would guess correctly.</p>
+<pre class="r"><code>class_diag &lt;- function(probs, truth) {
+    # CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR,
+    # PPV
+    tab &lt;- table(factor(probs &gt; 0.5, levels = c(&quot;FALSE&quot;, 
+        &quot;TRUE&quot;)), truth)
+    acc = sum(diag(tab))/sum(tab)
+    sens = tab[2, 2]/colSums(tab)[2]
+    spec = tab[1, 1]/colSums(tab)[1]
+    ppv = tab[2, 2]/rowSums(tab)[2]
+    f1 = 2 * (sens * ppv)/(sens + ppv)
+    if (is.numeric(truth) == FALSE &amp; is.logical(truth) == 
+        FALSE) 
+        truth &lt;- as.numeric(truth) - 1
+    # CALCULATE EXACT AUC
+    ord &lt;- order(probs, decreasing = TRUE)
+    probs &lt;- probs[ord]
+    truth &lt;- truth[ord]
+    TPR = cumsum(truth)/max(1, sum(truth))
+    FPR = cumsum(!truth)/max(1, sum(!truth))
+    dup &lt;- c(probs[-1] &gt;= probs[-length(probs)], FALSE)
+    TPR &lt;- c(0, TPR[!dup], 1)
+    FPR &lt;- c(0, FPR[!dup], 1)
+    n &lt;- length(TPR)
+    auc &lt;- sum(((TPR[-1] + TPR[-n])/2) * (FPR[-1] - 
+        FPR[-n]))
+    data.frame(acc, sens, spec, ppv, f1, auc)
+}
+LR4 &lt;- glm(Guns$R_or_D ~ Guns$RATE + Guns$`Gun Ownership (Percent)` + 
+    Guns$`Registered Guns` + Guns$Deaths + Guns$new_y, 
+    family = &quot;binomial&quot;)
+coeftest(LR4)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                                   Estimate  Std. Error z value Pr(&gt;|z|)  
+## (Intercept)                    -3.5316e+00  1.4473e+00 -2.4402  0.01468 *
+## Guns$RATE                       1.7754e-01  9.1825e-02  1.9335  0.05318 .
+## Guns$`Gun Ownership (Percent)` -3.7470e-02  4.3254e-02 -0.8663  0.38633  
+## Guns$`Registered Guns`          6.3788e-06  6.2307e-06  1.0238  0.30595  
+## Guns$Deaths                    -7.8729e-04  1.0119e-03 -0.7780  0.43656  
+## Guns$new_y                      1.7827e-01  1.0872e-01  1.6397  0.10107  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>coef(LR4) %&gt;% exp %&gt;% round(5) %&gt;% data.frame</code></pre>
+<pre><code>##                                      .
+## (Intercept)                    0.02926
+## Guns$RATE                      1.19428
+## Guns$`Gun Ownership (Percent)` 0.96322
+## Guns$`Registered Guns`         1.00001
+## Guns$Deaths                    0.99921
+## Guns$new_y                     1.19514</code></pre>
+<pre class="r"><code>prob1 &lt;- predict(LR4, type = &quot;response&quot;)
+table(predict = as.numeric(prob &gt; 0.5), truth = Guns$R_or_D) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict  0  1 Sum
+##     0   14  8  22
+##     1   10 18  28
+##     Sum 24 26  50</code></pre>
+<pre class="r"><code>set.seed(1234)
+k = 9
+
+data &lt;- Guns[sample(nrow(Guns)), ]
+folds &lt;- cut(seq(1:nrow(Guns)), breaks = k, labels = F)
+
+diags &lt;- NULL
+for (i in 1:k) {
+    
+    train &lt;- data[folds != i, ]
+    test &lt;- data[folds == i, ]
+    
+    truth &lt;- test$R_or_D
+    
+    
+    LR6 &lt;- glm(R_or_D ~ RATE + `Gun Ownership (Percent)` + 
+        `Registered Guns`, data = train, family = &quot;binomial&quot;)
+    
+    probs &lt;- predict(LR6, newdata = test, type = &quot;response&quot;)
+    
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv  f1       auc
+## 1 0.5740741 0.5925926 0.5740741 0.6277778 NaN 0.6549383</code></pre>
+<p>The intercept shows predicted odds of Republican Governor when all variables are zero is .11388. Rate shows that controlling for Gun ownership and registered guns, for every one-unit increase in RATE, predicted odds of republican governor increase by a factor of 1.154. The other variables did not show signifigant interaction. The test statistics are the same, Sensitivity is .692, specificity is .583, and precision is .6428. For the 9 fold test, The acc is .574, the sens is .5925, spec is .574, ppv is .628, and auc is .655. This auc is poor.</p>
+<pre class="r"><code>library(glmnet)
+y &lt;- as.matrix(Guns$R_or_D)
+Gun_Pred &lt;- model.matrix(R_or_D ~ RATE + `Gun Ownership (Percent)` + 
+    `Registered Guns`, data = Guns)[, -1]
+cv &lt;- cv.glmnet(Gun_Pred, y, family = &quot;binomial&quot;)
+lasso_fit &lt;- glmnet(Gun_Pred, y, family = &quot;binomial&quot;, 
+    lambda = cv$lambda.1se)
+coef(lasso_fit)</code></pre>
+<pre><code>## 4 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                     s0
+## (Intercept)               8.004271e-02
+## RATE                      2.154175e-17
+## `Gun Ownership (Percent)` .           
+## `Registered Guns`         .</code></pre>
+<p>Only death RATE was retained amoung my variables.</p>
+<pre class="r"><code>set.seed(1721)
+k = 9
+
+data &lt;- Guns[sample(nrow(Guns)), ]
+folds &lt;- cut(seq(1:nrow(Guns)), breaks = k, labels = F)
+
+diags &lt;- NULL
+for (i in 1:k) {
+    
+    train &lt;- data[folds != i, ]
+    test &lt;- data[folds == i, ]
+    
+    truth &lt;- test$R_or_D
+    
+    
+    LR6 &lt;- glm(R_or_D ~ RATE, data = train, family = &quot;binomial&quot;)
+    
+    probs &lt;- predict(LR6, newdata = test, type = &quot;response&quot;)
+    
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv        f1       auc
+## 1 0.6185185 0.7425926 0.6407407 0.6666667 0.6320106 0.7388889</code></pre>
+<p>The AUC on the refined death RATE model was a .7389, a marked increase from the previous .655.</p>
+<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

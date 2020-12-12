@@ -1,0 +1,105 @@
+---
+title: "Project 1"
+author: "SDS348 Fall 2020"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+---
+
+```{r global_options, include=FALSE}
+#DO NOT EDIT THIS CHUNK OR ANYTHING ABOVE IT!
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F, tidy=T, tidy.opts=list(width.cutoff=50), R.options=list(max.print=100,dplyr.print_max=100))
+```
+
+I decided to research the correlation between gun ownership and gun deaths in each state. 
+I have titled the data sets GunMort, GovParty, and GunReg. In GunMort, each state, the number of their  
+total gun deaths by state, and the number of deaths by gun per 100,000 population by state is listed. 
+This data was collected on the CDC website describing firearm mortality. In GovParty each state and the 
+political party of the governor of each state is listed. This data was aquired on the Governors 2020 Roster  
+from the National Governors Association. In GunReg, each state, the total number of registered guns by 
+state, and the  percentage of adults who own guns is listed. This data was collected on statista.com in 
+the Crime & Law Enforcement sub-section.
+
+```{r}
+ library(readr)
+ library(tidyverse)
+ GunMort <- read_csv("Firearm Mortality by State - Firearm Mortality by State.csv")
+ GunReg <- read_csv("GunRegistry by State - Sheet1 (1).csv")
+ GovParty <- read_csv("Governor's Party Data - Sheet1.csv")
+ Guns <- GunReg %>% left_join(GunMort) %>% left_join(GovParty)
+ GunsR<- Guns%>% filter(`Governor's Political Party`=="R")
+ GunsD<- Guns%>% filter(`Governor's Political Party`=="D")
+```
+
+I decided to left join as all my data sets had the state names as variables and I would not have to drop any cell's information joining in this manner.
+
+
+```{r}
+Guns %>% mutate(Deaths_per_gun = DEATHS/`Registered Guns`) %>% select(Deaths_per_gun, STATE)%>% arrange(desc(Deaths_per_gun))
+ Guns%>% filter(DEATHS>1000)%>% select(-`Registered Guns`)%>% arrange(RATE)
+ Guns %>% summarize(median_RegGuns=median(`Registered Guns`), mean_RegGuns=mean(`Registered Guns`),
+    median_GOWN=median(`Gun Ownership (Percent)`), mean_GOWN=mean(`Gun Ownership (Percent)`),
+    sd_GOWN=sd(`Gun Ownership (Percent)`), median_RATE=median(RATE), mean_RATE=mean(RATE), sd_RATE=sd(RATE), median_DEATH=median(DEATHS), mean_DEATH=mean(DEATHS), sd_DEATH=sd(DEATHS)) %>% glimpse()
+ Guns%>% group_by(`Governor's Political Party`)%>% summarize(median_RegGuns=median(`Registered Guns`), mean_RegGuns=mean(`Registered Guns`),
+    median_GOWN=median(`Gun Ownership (Percent)`), mean_GOWN=mean(`Gun Ownership (Percent)`), sd_GOWN=sd(`Gun Ownership (Percent)`),
+    median_RATE=median(RATE), mean_RATE=mean(RATE), sd_RATE=sd(RATE), median_DEATH=median(DEATHS), mean_DEATH=mean(DEATHS), sd_DEATH=sd(DEATHS), max_DEATH=max(DEATHS), min_DEATH=min(DEATHS)) %>% glimpse()
+```
+To begin, I created a new variable measuring the number of firearm deaths per registered firearm  in each state, using mutate. I then observed the states with the highest values, which was topped by Delaware with .02026 deaths per firearm. Next, I filtered to only see states with over 1000 firearm deaths, of which there are 14. I observed the data in order from the states with the lowest firearm death rate, which is California with 7.5 firearm deaths per 100,000 total population. For my summary statistics, I first found the overall median and mean for all four of my numerical variables, and found the standard deviation for the same variables. The standard deviation was relatively high compared to the median and mean values because of the large differences in state population size. I then found all of the same summary statistics while grouping the states by the political party of their governor. I also observed the minimum and maximum values for total firearm deaths for each group. Democratic states had a median gun ownership rate of 28.75% and a median death rate of 11.65 per 100,000. Republican states had a median gun ownership of 33.15% and a median death rate of 15 per 100,000. 
+
+
+```{r}
+Guns %>% select_if(is.numeric)%>% cor(use = "everything")%>% as.data.frame()%>% rownames_to_column()%>% pivot_longer(-1)%>% ggplot(aes(rowname,name,fill=value))+ 
+   geom_tile()+geom_text(aes(label=round(value,2)))+
+   xlab("")+ylab("")+coord_fixed()+scale_fill_gradient2(low = "blue", high = "red")
+```
+This correlation heatmap shows strong correlations between the number of registered guns in a state and the number of firearm deaths in a state and between the firearm death rate and the gun ownership rate in each state. The first correlation is likely due to the general fact that more populous states will have a higher number of registered firearms and a higher number of deaths than less populous states. This makes me believe that both of these correlate with state population, rather than specifically with each other. The second correlation, however, is ratios of population which controls for the previous problem with variable state population. The gun ownership percentage of a state could be a good indicator of the firearm death rate per 100,000 people. Additionally, I used pivot_longer to more effectively display the data.
+
+```{r}
+ggplot(Guns, aes(RATE, `Gun Ownership (Percent)`), stat=summary)+geom_point(aes(color=`Governor's Political Party`))+xlab('Death Rate per 100,000 Population')+ scale_color_brewer(palette="Dark2")+ labs(title= 'Gun Ownership vs Death Rate by Political Party' )+theme_minimal()
+```
+ This graph shows the Death Rate of every state plotted agaisnt the gun ownership percent of those same state, sorted by the politcal identification of their governor. A very clear positive correlation can be observed as a relatively high gun ownership percent predisposes a state to a high death rate, or vice versa. Further, Republican states appear to be more likely to have higher values for these targeted variables. 
+
+```{r}
+colors1<- ( c("#56B4E9","#E69F00"))
+colors1<- colors1[as.factor(Guns$`Governor's Political Party`)]
+Guns$Party<- as.factor(Guns$`Governor's Political Party`)
+Guns$`Registered Guns(x1000)`<-Guns$`Registered Guns`/1000
+
+#this is a 3D scatterplot, and I could not get it to knit because of the error "non-numeric argument to binary operator" for my DEATHS column. I tried for many ways of fixing this, and none of them worked. I made the variable a numeric several ways, reuploaded the data, changed the variable name, and none of it worked. So I just made the graph a comment to knit, but please run the code and it will produce a nice graph showing the DEATHS despite the error message. 
+
+#scatterplot3d::scatterplot3d(Guns$`Registered Guns(x1000)`, as.numeric(Guns$DEATHS), Guns$RATE, pch = 16, color = colors1, main = "Gun Statistics", type = "h", grid = TRUE, box = FALSE, xlab = "Registered Firearms (x1000)", ylab = "Total Deaths from Firearms", zlab = "Death Rate per 100,000 Population")+ legend("bottom", "Party", legend=levels(Guns$Party), col =  c("#56B4E9", "#E69F00"), pch = 16, inset = -.25, xpd = TRUE, horiz = TRUE)
+library("knitr")
+library("png")
+
+img1_path <- "3DScatterplot.png"
+img1 <- readPNG(img1_path, native = TRUE, info = TRUE)
+attr(img1, "info")
+include_graphics(img1_path)
+
+```
+This graph, titled "Gun Statistics" plots the total number of deaths, the amount of registered firearms divided by 1000, and the death rate of each state on a 3D scatterplot. The states are also colored by the political party of their governor. Texas, Florida, and California are the three data points seperated from the other states due to their high amount of deaths and registered firearms. Here, again, the Republican States stand out above the Democratic states for having a higer death rate. Regardless of political leaning, the vast majority of states are below 1500 firearm deaths per year.  
+ 
+
+```{r}
+GunNum<- Guns%>% select_if(is.numeric)%>% scale
+rownames(GunNum)<-Guns$STATE
+GunPCA<-princomp(GunNum)
+names(GunPCA)
+summary(GunPCA, loadings = T)
+eigval<-GunPCA$sdev^2
+varprop=round(eigval/sum(eigval), 2)
+ggplot() + geom_bar(aes(y=varprop, x=1:5), stat="identity") + xlab("") + geom_path(aes(y=varprop, x=1:5)) + 
+  geom_text(aes(x=1:5, y=varprop, label=round(varprop, 2)), vjust=1, col="white", size=5) + 
+  scale_y_continuous(breaks=seq(0, .6, .2), labels = scales::percent) + 
+  scale_x_continuous(breaks=1:10)
+gunedf <-  data.frame(PC1=GunPCA$scores[, 1], PC2=GunPCA$scores[, 2])
+ggplot(gunedf, aes(PC1, PC2)) + geom_point()
+GunPCA$scores %>% as.data.frame %>% cbind('STATE', .) %>% top_n(5, Comp.1)
+GunPCA$scores %>% as.data.frame %>% cbind('STATE', .) %>% top_n(5, wt=desc(Comp.1))
+GunPCA$scores %>% as.data.frame %>% cbind('STATE', .) %>% top_n(5, Comp.2)
+```
+To run my PCA, first I cleaned my data to only compare the numeric values. Then I scaled all of the data in order to normalize it. I then ran princomp on that data and created a scree plot. As my first two principal components accounted for 90% of the variation, I chose to use only 2. PC1 accounts for the variation of Registered guns and number of deaths, as these things vary together. PC2 accounts for the variation of Gun ownership percentage and death rate, as these vary together. I then graphed PC1 vs PC2 to visualize the data. I sampled the data for the top 5 PC1 values, and the high population states of TX, FL, and CA had the highest PC1. Next, I sampled for the top 5 PC2 values, and the states of AL and AK both possessed abnormally high PC2 values, signifying a high death rate and a high gun ownership percentage. 
+

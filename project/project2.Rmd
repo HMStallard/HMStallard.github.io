@@ -1,0 +1,191 @@
+---
+title: "Project 2"
+author: "Hunter Stallard - SDS348 Fall 2020"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+---
+
+```{r global_options, include=FALSE}
+#DO NOT EDIT THIS CHUNK OR ANYTHING ABOVE IT!
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F, tidy=T, tidy.opts=list(width.cutoff=50), R.options=list(max.print=100,dplyr.print_max=100))
+```
+
+I decided to research the correlation between gun ownership and gun deaths in each state. I have titled the data sets GunMort, GovParty, and GunReg. In GunMort, each state, the number of their  
+total gun deaths by state, and the number of deaths by gun per 100,000 population by state is listed. 
+This data was collected on the CDC website describing firearm mortality. In GovParty each state and the 
+political party of the governor of each state is listed. This data was aquired on the Governors 2020 Roster  
+from the National Governors Association. In GunReg, each state, the total number of registered guns by 
+state, and the  percentage of adults who own guns is listed. This data was collected on statista.com in 
+the Crime & Law Enforcement sub-section.
+
+```{r}
+library(readr)
+library(tidyverse)
+library(dplyr)
+library(rstatix)
+library(sandwich); library(lmtest)
+library(plotROC)
+
+ GunMort <- read_csv("FA Mort.csv")
+ GunReg <- read_csv("GunRegistry by State - Sheet1 (1).csv")
+ GovParty <- read_csv("Governor's Party Data - Sheet1.csv")
+ Guns <- GunReg %>% left_join(GunMort) %>% left_join(GovParty)
+ Guns <- Guns%>%mutate(R_or_D=ifelse(Guns$`Governor's Political Party`=="R",1,0))
+
+
+ PParty<-Guns$R_or_D
+ggplot(Guns, aes(x = Guns$RATE, y = Guns$`Gun Ownership (Percent)`))+ geom_point(alpha = .5) + geom_density_2d(h=2) + coord_fixed()+ facet_wrap(Guns$R_or_D)
+man1<-manova(cbind(Guns$`Gun Ownership (Percent)`,Guns$RATE)~PParty)
+summary.aov(man1)
+pairwise.t.test(Guns$RATE,Guns$R_or_D, p.adj="none")
+pairwise.t.test(Guns$`Gun Ownership (Percent)`,Guns$R_or_D, p.adj="none")
+```
+
+
+I conducted a one-way MANOVA to determine if the political party of a state's government had an effect on the rates of firearm death or gun ownership percentage. Examination of bivariate density plots for each group revealed no stark deparures from multivariate normality. Examination of covariance matrices for each group revealed relative homogeneity. No univariate or multivariate outliers were evident and MANOVA was considered to be an appropriate analysis technique. The overall MANOVA showed a p value of .04375 which triggered follow-up one-way ANOVAs of both variables. Only the death RATE variable showed signifigant correlation with Governor's Party, and after a posthoc t-test the p value was determined to be .013. We conducted 4 tests and after using the bonferroni adjustment our a = .0125. In this case we cannot confirm signifigant correlation between these variables but the test was very close and follow up tests should be conducted.  
+```{r}
+cor(Guns$RATE,Guns$`Gun Ownership (Percent)`)
+
+```
+
+```{r}
+LR<-lm(Guns$RATE~Guns$`Gun Ownership (Percent)`)
+summary(LR)
+Guns%>%ggplot(aes(Guns$RATE,Guns$`Gun Ownership (Percent)`))+geom_point()+geom_smooth(method = 'lm',se=F)
+bptest(LR)
+coeftest(LR)[,1:2]
+coeftest(LR, vcov=vcovHC(LR))[,1:2]
+```
+The coeffecient value suggests that for every .26 unit increase of gun ownership percentage, there is a 1 unit increase in death rate. Assumptions cleared graphically and with a bptest. There was no signifigant change caused by the robust standard errors. As the p value of the interaction between Gun ownership percent and death rate is extremely low , it suggests that there is signifigant interaction between them. My model explains 44% of the variation as that is its r^2 value. 
+```{r}
+ resids<-LR$residuals #save residuals
+  fitted<-LR$fitted.values #save yhats/predictions
+  new_resids<-sample(resids,replace=TRUE)
+   Guns$new_y<-fitted+new_resids 
+   
+  resid_resamp<-replicate(5000,{
+    new_resids<-sample(resids,replace=TRUE)
+    Guns$new_y<-fitted+new_resids 
+    LR2<-lm(Guns$new_y~Guns$`Gun Ownership (Percent)`)
+    coef(LR2) })
+  resid_resamp%>%t%>%as.data.frame%>%summarize_all(sd)
+
+```
+The standard errors where pretty comparable, sticking around .41-.43 for all test iterations. Overall, the robust standard errors was the most conserved. 
+```{r}
+
+LR3<-glm(Guns$R_or_D~Guns$RATE+Guns$`Gun Ownership (Percent)`+Guns$`Registered Guns`,  family="binomial")
+coeftest(LR3)
+coef(LR3)%>%exp%>%round(5)%>%data.frame
+prob<-predict(LR3, type = "response")
+table(predict=as.numeric(prob>.5), truth=Guns$R_or_D)%>%addmargins
+```
+The intercept shows predicted odds of Republican Governor when all variables are zero is .11388. Rate shows that controlling for Gun ownership and registered guns, for every one-unit increase in RATE, predicted odds of republican governor increase by a factor of 1.14. The other variables did not show signifigant interaction. Sensitivity is .692, specificity is .583, and precision is .6428.
+
+
+```{r pressure, echo=FALSE}
+Guns$logit<-predict(LR3)
+Guns%>%mutate(R_or_D=factor(R_or_D,levels = c("1","0")))%>%ggplot(aes(logit, fill=Guns$R_or_D))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)
+ROCplot<-ggplot(Guns)+geom_roc(aes(d=Guns$R_or_D,m=prob), n.cuts=0)
+ROCplot
+calc_auc(ROCplot)
+```
+Here is my log ggplot and my AUC curve. AUC came out at .705 signifying that if we randomly selected a state with a republican goverenor there is a 70% probability that this model would guess correctly.
+
+```{R}
+class_diag <- function(probs,truth){
+#CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR, PPV
+tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+acc=sum(diag(tab))/sum(tab)
+sens=tab[2,2]/colSums(tab)[2]
+spec=tab[1,1]/colSums(tab)[1]
+ppv=tab[2,2]/rowSums(tab)[2]
+f1=2*(sens*ppv)/(sens+ppv)
+if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+#CALCULATE EXACT AUC
+ord<-order(probs, decreasing=TRUE)
+probs <- probs[ord]; truth <- truth[ord]
+TPR=cumsum(truth)/max(1,sum(truth))
+FPR=cumsum(!truth)/max(1,sum(!truth))
+dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+n <- length(TPR)
+auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+data.frame(acc,sens,spec,ppv,f1,auc)
+}
+LR4<-glm(Guns$R_or_D~Guns$RATE+Guns$`Gun Ownership (Percent)`+Guns$`Registered Guns`+Guns$Deaths+Guns$new_y,  family="binomial")
+coeftest(LR4)
+coef(LR4)%>%exp%>%round(5)%>%data.frame
+prob1<-predict(LR4, type = "response")
+table(predict=as.numeric(prob>.5), truth=Guns$R_or_D)%>%addmargins
+set.seed(1234)
+k=9 
+
+data<-Guns[sample(nrow(Guns)),] 
+folds<-cut(seq(1:nrow(Guns)),breaks=k,labels=F) 
+
+diags<-NULL
+for(i in 1:k){
+
+  train<-data[folds!=i,] 
+  test<-data[folds==i,]
+  
+  truth<-test$R_or_D
+  
+
+  LR6<-glm(R_or_D~RATE+`Gun Ownership (Percent)`+`Registered Guns`, data=train,family="binomial")
+
+  probs<-predict(LR6,newdata = test,type="response")
+
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+
+summarize_all(diags,mean) 
+
+``` 
+The intercept shows predicted odds of Republican Governor when all variables are zero is .11388. Rate shows that controlling for Gun ownership and registered guns, for every one-unit increase in RATE, predicted odds of republican governor increase by a factor of 1.154. The other variables did not show signifigant interaction. The test statistics are the same, Sensitivity is .692, specificity is .583, and precision is .6428. For the 9 fold test, The acc is .574, the sens is .5925, spec is .574, ppv is .628, and auc is .655. This auc is poor.
+
+```{R}
+library(glmnet)
+y<-as.matrix(Guns$R_or_D)
+Gun_Pred<-model.matrix(R_or_D~RATE+`Gun Ownership (Percent)`+`Registered Guns`, data=Guns)[,-1]
+cv<-cv.glmnet(Gun_Pred,y,family="binomial")
+lasso_fit<-glmnet(Gun_Pred,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso_fit)
+``` 
+
+Only death RATE was retained amoung my variables.
+
+```{R}
+set.seed(1721)
+k=9 
+
+data<-Guns[sample(nrow(Guns)),] 
+folds<-cut(seq(1:nrow(Guns)),breaks=k,labels=F) 
+
+diags<-NULL
+for(i in 1:k){
+
+  train<-data[folds!=i,] 
+  test<-data[folds==i,]
+  
+  truth<-test$R_or_D
+  
+
+  LR6<-glm(R_or_D~RATE, data=train,family="binomial")
+
+  probs<-predict(LR6,newdata = test,type="response")
+
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+
+summarize_all(diags,mean) 
+``` 
+ The AUC on the refined death RATE model was a .7389, a marked increase from the previous .655. 
+ 
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

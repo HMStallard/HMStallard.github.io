@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Hunter Stallard" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 1</title>
+    <meta name="generator" content="Hugo 0.79.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project1/">Project 1</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p>I decided to research the correlation between gun ownership and gun deaths in each state. I have titled the data sets GunMort, GovParty, and GunReg. In GunMort, each state, the number of their<br />
+total gun deaths by state, and the number of deaths by gun per 100,000 population by state is listed. This data was collected on the CDC website describing firearm mortality. In GovParty each state and the political party of the governor of each state is listed. This data was aquired on the Governors 2020 Roster<br />
+from the National Governors Association. In GunReg, each state, the total number of registered guns by state, and the percentage of adults who own guns is listed. This data was collected on statista.com in the Crime &amp; Law Enforcement sub-section.</p>
+<pre class="r"><code>library(readr)
+library(tidyverse)
+GunMort &lt;- read_csv(&quot;Firearm Mortality by State - Firearm Mortality by State.csv&quot;)
+GunReg &lt;- read_csv(&quot;GunRegistry by State - Sheet1 (1).csv&quot;)
+GovParty &lt;- read_csv(&quot;Governor&#39;s Party Data - Sheet1.csv&quot;)
+Guns &lt;- GunReg %&gt;% left_join(GunMort) %&gt;% left_join(GovParty)
+GunsR &lt;- Guns %&gt;% filter(`Governor&#39;s Political Party` == 
+    &quot;R&quot;)
+GunsD &lt;- Guns %&gt;% filter(`Governor&#39;s Political Party` == 
+    &quot;D&quot;)</code></pre>
+<p>I decided to left join as all my data sets had the state names as variables and I would not have to drop any cell's information joining in this manner.</p>
+<pre class="r"><code>Guns %&gt;% mutate(Deaths_per_gun = DEATHS/`Registered Guns`) %&gt;% 
+    select(Deaths_per_gun, STATE) %&gt;% arrange(desc(Deaths_per_gun))</code></pre>
+<pre><code>## # A tibble: 50 x 2
+##    Deaths_per_gun STATE
+##             &lt;dbl&gt; &lt;chr&gt;
+##  1       0.0203   DE   
+##  2       0.0157   MI   
+##  3       0.0149   MO   
+##  4       0.0130   MS   
+##  5       0.0106   VT   
+##  6       0.0101   TN   
+##  7       0.00990  NY   
+##  8       0.00936  IL   
+##  9       0.00913  ME   
+## 10       0.00901  SC   
+## 11       0.00884  OH   
+## 12       0.00851  LA   
+## 13       0.00824  WV   
+## 14       0.00813  KY   
+## 15       0.00807  CA   
+## 16       0.00800  OK   
+## 17       0.00795  RI   
+## 18       0.00792  MT   
+## 19       0.00789  CO   
+## 20       0.00781  NC   
+## 21       0.00779  KS   
+## 22       0.00772  IA   
+## 23       0.00755  AK   
+## 24       0.00751  WI   
+## 25       0.00743  GA   
+## 26       0.00731  IN   
+## 27       0.00695  OR   
+## 28       0.00681  HI   
+## 29       0.00675  WA   
+## 30       0.00671  FL   
+## 31       0.00647  MA   
+## 32       0.00632  AL   
+## 33       0.00615  NE   
+## 34       0.00609  PA   
+## 35       0.00568  NV   
+## 36       0.00560  AZ   
+## 37       0.00551  MD   
+## 38       0.00527  AR   
+## 39       0.00500  ID   
+## 40       0.00486  TX   
+## 41       0.00466  NJ   
+## 42       0.00451  ND   
+## 43       0.00443  MN   
+## 44       0.00425  UT   
+## 45       0.00414  NM   
+## 46       0.00376  SD   
+## 47       0.00290  VA   
+## 48       0.00261  NH   
+## 49       0.00248  CT   
+## 50       0.000925 WY</code></pre>
+<pre class="r"><code>Guns %&gt;% filter(DEATHS &gt; 1000) %&gt;% select(-`Registered Guns`) %&gt;% 
+    arrange(RATE)</code></pre>
+<pre><code>## # A tibble: 14 x 5
+##    STATE `Gun Ownership (Percent)`  RATE DEATHS `Governor&#39;s Political Party`
+##    &lt;chr&gt;                     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;                       
+##  1 CA                         20.1   7.5   3040 D                           
+##  2 IL                         26.2  10.9   1382 D                           
+##  3 VA                         29.3  11.8   1035 D                           
+##  4 TX                         35.7  12.2   3522 R                           
+##  5 PA                         27.1  12.5   1654 D                           
+##  6 FL                         32.5  12.9   2902 R                           
+##  7 MI                         28.8  12.9   1310 D                           
+##  8 OH                         19.6  13.1   1555 R                           
+##  9 NC                         28.7  13.3   1416 D                           
+## 10 AZ                         32.3  15.3   1147 R                           
+## 11 GA                         31.6  15.7   1680 R                           
+## 12 TN                         39.4  17.8   1228 R                           
+## 13 MO                         27.1  21.5   1311 R                           
+## 14 AL                         48.9  21.8   1064 R</code></pre>
+<pre class="r"><code>Guns %&gt;% summarize(median_RegGuns = median(`Registered Guns`), 
+    mean_RegGuns = mean(`Registered Guns`), median_GOWN = median(`Gun Ownership (Percent)`), 
+    mean_GOWN = mean(`Gun Ownership (Percent)`), sd_GOWN = sd(`Gun Ownership (Percent)`), 
+    median_RATE = median(RATE), mean_RATE = mean(RATE), 
+    sd_RATE = sd(RATE), median_DEATH = median(DEATHS), 
+    mean_DEATH = mean(DEATHS), sd_DEATH = sd(DEATHS)) %&gt;% 
+    glimpse()</code></pre>
+<pre><code>## Rows: 1
+## Columns: 11
+## $ median_RegGuns &lt;dbl&gt; 91828.5
+## $ mean_RegGuns   &lt;dbl&gt; 119953.8
+## $ median_GOWN    &lt;dbl&gt; 32.25
+## $ mean_GOWN      &lt;dbl&gt; 32.58
+## $ sd_GOWN        &lt;dbl&gt; 13.0528
+## $ median_RATE    &lt;dbl&gt; 13
+## $ mean_RATE      &lt;dbl&gt; 13.388
+## $ sd_RATE        &lt;dbl&gt; 5.214487
+## $ median_DEATH   &lt;dbl&gt; 585.5
+## $ mean_DEATH     &lt;dbl&gt; 792.3
+## $ sd_DEATH       &lt;dbl&gt; 764.2139</code></pre>
+<pre class="r"><code>Guns %&gt;% group_by(`Governor&#39;s Political Party`) %&gt;% 
+    summarize(median_RegGuns = median(`Registered Guns`), 
+        mean_RegGuns = mean(`Registered Guns`), median_GOWN = median(`Gun Ownership (Percent)`), 
+        mean_GOWN = mean(`Gun Ownership (Percent)`), 
+        sd_GOWN = sd(`Gun Ownership (Percent)`), median_RATE = median(RATE), 
+        mean_RATE = mean(RATE), sd_RATE = sd(RATE), 
+        median_DEATH = median(DEATHS), mean_DEATH = mean(DEATHS), 
+        sd_DEATH = sd(DEATHS), max_DEATH = max(DEATHS), 
+        min_DEATH = min(DEATHS)) %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 2
+## Columns: 14
+## $ `Governor&#39;s Political Party` &lt;chr&gt; &quot;D&quot;, &quot;R&quot;
+## $ median_RegGuns               &lt;dbl&gt; 91968, 90855
+## $ mean_RegGuns                 &lt;dbl&gt; 111561.1, 127701.0
+## $ median_GOWN                  &lt;dbl&gt; 28.75, 33.15
+## $ mean_GOWN                    &lt;dbl&gt; 28.99583, 35.88846
+## $ sd_GOWN                      &lt;dbl&gt; 13.05805, 12.38339
+## $ median_RATE                  &lt;dbl&gt; 11.65, 15.00
+## $ mean_RATE                    &lt;dbl&gt; 11.50417, 15.12692
+## $ sd_RATE                      &lt;dbl&gt; 5.186477, 4.689866
+## $ median_DEATH                 &lt;dbl&gt; 574, 619
+## $ mean_DEATH                   &lt;dbl&gt; 759.5417, 822.5385
+## $ sd_DEATH                     &lt;dbl&gt; 669.0269, 854.9354
+## $ max_DEATH                    &lt;dbl&gt; 3040, 3522
+## $ min_DEATH                    &lt;dbl&gt; 37, 82</code></pre>
+<p>To begin, I created a new variable measuring the number of firearm deaths per registered firearm in each state, using mutate. I then observed the states with the highest values, which was topped by Delaware with .02026 deaths per firearm. Next, I filtered to only see states with over 1000 firearm deaths, of which there are 14. I observed the data in order from the states with the lowest firearm death rate, which is California with 7.5 firearm deaths per 100,000 total population. For my summary statistics, I first found the overall median and mean for all four of my numerical variables, and found the standard deviation for the same variables. The standard deviation was relatively high compared to the median and mean values because of the large differences in state population size. I then found all of the same summary statistics while grouping the states by the political party of their governor. I also observed the minimum and maximum values for total firearm deaths for each group. Democratic states had a median gun ownership rate of 28.75% and a median death rate of 11.65 per 100,000. Republican states had a median gun ownership of 33.15% and a median death rate of 15 per 100,000.</p>
+<pre class="r"><code>Guns %&gt;% select_if(is.numeric) %&gt;% cor(use = &quot;everything&quot;) %&gt;% 
+    as.data.frame() %&gt;% rownames_to_column() %&gt;% pivot_longer(-1) %&gt;% 
+    ggplot(aes(rowname, name, fill = value)) + geom_tile() + 
+    geom_text(aes(label = round(value, 2))) + xlab(&quot;&quot;) + 
+    ylab(&quot;&quot;) + coord_fixed() + scale_fill_gradient2(low = &quot;blue&quot;, 
+    high = &quot;red&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /> This correlation heatmap shows strong correlations between the number of registered guns in a state and the number of firearm deaths in a state and between the firearm death rate and the gun ownership rate in each state. The first correlation is likely due to the general fact that more populous states will have a higher number of registered firearms and a higher number of deaths than less populous states. This makes me believe that both of these correlate with state population, rather than specifically with each other. The second correlation, however, is ratios of population which controls for the previous problem with variable state population. The gun ownership percentage of a state could be a good indicator of the firearm death rate per 100,000 people. Additionally, I used pivot_longer to more effectively display the data.</p>
+<pre class="r"><code>ggplot(Guns, aes(RATE, `Gun Ownership (Percent)`), 
+    stat = summary) + geom_point(aes(color = `Governor&#39;s Political Party`)) + 
+    xlab(&quot;Death Rate per 100,000 Population&quot;) + scale_color_brewer(palette = &quot;Dark2&quot;) + 
+    labs(title = &quot;Gun Ownership vs Death Rate by Political Party&quot;) + 
+    theme_minimal()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /> This graph shows the Death Rate of every state plotted agaisnt the gun ownership percent of those same state, sorted by the politcal identification of their governor. A very clear positive correlation can be observed as a relatively high gun ownership percent predisposes a state to a high death rate, or vice versa. Further, Republican states appear to be more likely to have higher values for these targeted variables.</p>
+<pre class="r"><code>colors1 &lt;- (c(&quot;#56B4E9&quot;, &quot;#E69F00&quot;))
+colors1 &lt;- colors1[as.factor(Guns$`Governor&#39;s Political Party`)]
+Guns$Party &lt;- as.factor(Guns$`Governor&#39;s Political Party`)
+Guns$`Registered Guns(x1000)` &lt;- Guns$`Registered Guns`/1000
+
+# this is a 3D scatterplot, and I could not get it
+# to knit because of the error &#39;non-numeric
+# argument to binary operator&#39; for my DEATHS
+# column. I tried for many ways of fixing this, and
+# none of them worked. I made the variable a
+# numeric several ways, reuploaded the data,
+# changed the variable name, and none of it worked.
+# So I just made the graph a comment to knit, but
+# please run the code and it will produce a nice
+# graph showing the DEATHS despite the error
+# message.
+
+# scatterplot3d::scatterplot3d(Guns$`Registered
+# Guns(x1000)`, as.numeric(Guns$DEATHS), Guns$RATE,
+# pch = 16, color = colors1, main = &#39;Gun
+# Statistics&#39;, type = &#39;h&#39;, grid = TRUE, box =
+# FALSE, xlab = &#39;Registered Firearms (x1000)&#39;, ylab
+# = &#39;Total Deaths from Firearms&#39;, zlab = &#39;Death
+# Rate per 100,000 Population&#39;)+ legend(&#39;bottom&#39;,
+# &#39;Party&#39;, legend=levels(Guns$Party), col =
+# c(&#39;#56B4E9&#39;, &#39;#E69F00&#39;), pch = 16, inset = -.25,
+# xpd = TRUE, horiz = TRUE)
+library(&quot;knitr&quot;)
+library(&quot;png&quot;)
+
+img1_path &lt;- &quot;3DScatterplot.png&quot;
+img1 &lt;- readPNG(img1_path, native = TRUE, info = TRUE)
+attr(img1, &quot;info&quot;)</code></pre>
+<pre><code>## $dim
+## [1] 700 432
+## 
+## $bit.depth
+## [1] 8
+## 
+## $color.type
+## [1] &quot;RGB&quot;
+## 
+## $dpi
+## [1] 95.9866 95.9866</code></pre>
+<pre class="r"><code>include_graphics(img1_path)</code></pre>
+<p><img src="3DScatterplot.png" width="350" style="display: block; margin: auto;" /> This graph, titled &quot;Gun Statistics&quot; plots the total number of deaths, the amount of registered firearms divided by 1000, and the death rate of each state on a 3D scatterplot. The states are also colored by the political party of their governor. Texas, Florida, and California are the three data points seperated from the other states due to their high amount of deaths and registered firearms. Here, again, the Republican States stand out above the Democratic states for having a higer death rate. Regardless of political leaning, the vast majority of states are below 1500 firearm deaths per year.</p>
+<pre class="r"><code>GunNum &lt;- Guns %&gt;% select_if(is.numeric) %&gt;% scale
+rownames(GunNum) &lt;- Guns$STATE
+GunPCA &lt;- princomp(GunNum)
+names(GunPCA)</code></pre>
+<pre><code>## [1] &quot;sdev&quot;     &quot;loadings&quot; &quot;center&quot;   &quot;scale&quot;    &quot;n.obs&quot;    &quot;scores&quot;   &quot;call&quot;</code></pre>
+<pre class="r"><code>summary(GunPCA, loadings = T)</code></pre>
+<pre><code>## Importance of components:
+##                           Comp.1    Comp.2     Comp.3     Comp.4 Comp.5
+## Standard deviation     1.6764305 1.2799544 0.57713540 0.34382039      0
+## Proportion of Variance 0.5735549 0.3343435 0.06797659 0.02412499      0
+## Cumulative Proportion  0.5735549 0.9078984 0.97587501 1.00000000      1
+## 
+## Loadings:
+##                         Comp.1 Comp.2 Comp.3 Comp.4 Comp.5
+## Registered Guns          0.584         0.130  0.377  0.707
+## Gun Ownership (Percent)         0.706  0.680 -0.194       
+## RATE                            0.708 -0.681  0.188       
+## DEATHS                   0.563        -0.201 -0.802       
+## Registered Guns(x1000)   0.584         0.130  0.377 -0.707</code></pre>
+<pre class="r"><code>eigval &lt;- GunPCA$sdev^2
+varprop = round(eigval/sum(eigval), 2)
+ggplot() + geom_bar(aes(y = varprop, x = 1:5), stat = &quot;identity&quot;) + 
+    xlab(&quot;&quot;) + geom_path(aes(y = varprop, x = 1:5)) + 
+    geom_text(aes(x = 1:5, y = varprop, label = round(varprop, 
+        2)), vjust = 1, col = &quot;white&quot;, size = 5) + 
+    scale_y_continuous(breaks = seq(0, 0.6, 0.2), labels = scales::percent) + 
+    scale_x_continuous(breaks = 1:10)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>gunedf &lt;- data.frame(PC1 = GunPCA$scores[, 1], PC2 = GunPCA$scores[, 
+    2])
+ggplot(gunedf, aes(PC1, PC2)) + geom_point()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-6-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>GunPCA$scores %&gt;% as.data.frame %&gt;% cbind(&quot;STATE&quot;, 
+    .) %&gt;% top_n(5, Comp.1)</code></pre>
+<pre><code>##    &quot;STATE&quot;   Comp.1       Comp.2      Comp.3     Comp.4        Comp.5
+## TX   STATE 7.541659  0.132341126  0.83705903  0.6303919 -4.440892e-15
+## FL   STATE 4.415674 -0.001668181  0.14329552 -0.3791382 -2.442491e-15
+## CA   STATE 4.025226 -1.414568928  0.05211082 -0.8642842 -2.664535e-15
+## VA   STATE 2.354103 -0.349445939  0.45767212  1.1397869 -1.110223e-15
+## PA   STATE 2.035721 -0.384692520 -0.08645855  0.0422587 -1.332268e-15</code></pre>
+<pre class="r"><code>GunPCA$scores %&gt;% as.data.frame %&gt;% cbind(&quot;STATE&quot;, 
+    .) %&gt;% top_n(5, wt = desc(Comp.1))</code></pre>
+<pre><code>##    &quot;STATE&quot;    Comp.1     Comp.2     Comp.3     Comp.4       Comp.5
+## ND   STATE -1.489039  0.5504711  1.0243354 -0.1515942 1.221245e-15
+## HI   STATE -1.628671 -0.6211051  1.8432308 -0.4135755 1.110223e-15
+## VT   STATE -1.541486 -0.3087753 -0.1624816  0.1159861 9.992007e-16
+## DE   STATE -1.477264 -1.7489240 -1.2459585  0.3837523 5.551115e-16
+## RI   STATE -1.563883 -2.8435086 -0.1137086  0.1460260 5.551115e-16</code></pre>
+<pre class="r"><code>GunPCA$scores %&gt;% as.data.frame %&gt;% cbind(&quot;STATE&quot;, 
+    .) %&gt;% top_n(5, Comp.2)</code></pre>
+<pre><code>##    &quot;STATE&quot;     Comp.1   Comp.2      Comp.3      Comp.4        Comp.5
+## AL   STATE  0.6205875 2.035078 -0.22160326  0.06033866 -1.110223e-16
+## WY   STATE -0.4010965 2.247434  0.25039424  0.76005232  7.216450e-16
+## NM   STATE -0.4189412 1.924830  0.01133156  0.29304872  5.689893e-16
+## MS   STATE -0.7008539 1.831303 -0.81908619 -0.09350120  5.551115e-16
+## AK   STATE -1.4437798 2.587120  0.48645273 -0.07999414  1.332268e-15</code></pre>
+<p>To run my PCA, first I cleaned my data to only compare the numeric values. Then I scaled all of the data in order to normalize it. I then ran princomp on that data and created a scree plot. As my first two principal components accounted for 90% of the variation, I chose to use only 2. PC1 accounts for the variation of Registered guns and number of deaths, as these things vary together. PC2 accounts for the variation of Gun ownership percentage and death rate, as these vary together. I then graphed PC1 vs PC2 to visualize the data. I sampled the data for the top 5 PC1 values, and the high population states of TX, FL, and CA had the highest PC1. Next, I sampled for the top 5 PC2 values, and the states of AL and AK both possessed abnormally high PC2 values, signifying a high death rate and a high gun ownership percentage.</p>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
